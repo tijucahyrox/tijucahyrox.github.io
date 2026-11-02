@@ -397,7 +397,7 @@
   .fld[hidden] { display: none; }
   .fld > span, .fld legend { padding: 0; font-size: 13.5px; font-weight: 700; color: var(--soft); }
   .fld legend { margin-bottom: 6px; }
-  .ficha input:not([type="radio"]), .ficha select {
+  .ficha input:not([type="radio"]):not([type="checkbox"]), .ficha select {
     width: 100%; height: 48px; padding: 0 14px; border-radius: 12px;
     background: var(--surface); border: 1px solid var(--line); color: var(--ink);
     font: inherit; font-size: 16px; -webkit-appearance: none; appearance: none;
@@ -415,12 +415,25 @@
   .opt span { display: flex; align-items: center; justify-content: center; height: 46px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); font-weight: 700; }
   .opt input:checked + span { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
   .opt input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .ficha.tentou input:not([type="radio"]):invalid, .ficha.tentou select:invalid { border-color: #ff5d6c; }
+  .ficha.tentou input:not([type="radio"]):not([type="checkbox"]):invalid, .ficha.tentou select:invalid { border-color: #ff5d6c; }
+  .ficha.tentou .check input:invalid + span { color: #ff8a95; }
   .ficha.tentou .opts:has(input:invalid) span { border-color: #ff5d6c; }
   .ficha-enviar { flex: none; width: 100%; margin-top: 4px; }
   .ficha-ok { min-height: 1em; text-align: center; font-size: 14px; font-weight: 700; color: #8ae05c; }
   .ficha-ok:empty { display: none; }
-  .ficha-nota { text-align: center; font-size: 12.5px; color: var(--faint); }
+  .fld-row { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 8px; }
+  .idade {
+    display: flex; align-items: center; height: 48px; padding: 0 14px; border-radius: 12px;
+    background: rgba(255, 255, 255, .04); border: 1px dashed rgba(255, 255, 255, .16);
+    font-size: 16px; font-weight: 700; white-space: nowrap;
+  }
+  .detalhe { margin-top: -4px; }
+  .regras { padding: 12px 14px; border-radius: 14px; background: rgba(255, 255, 255, .04); border: 1px solid var(--line); font-size: 13.5px; line-height: 1.4; color: var(--soft); }
+  .regras strong { display: block; margin-bottom: 6px; font-size: 14px; color: var(--ink); }
+  .regras ul { display: grid; gap: 4px; margin: 0; padding-left: 18px; }
+  .regras p { margin: 0; }
+  .check { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; line-height: 1.35; color: var(--soft); }
+  .check input { flex: none; width: 22px; height: 22px; margin: 0; accent-color: var(--accent); }
 
   blockquote.instagram-media { margin: 0; }
   blockquote.instagram-media > a {
@@ -570,28 +583,66 @@
     <p class="ficha-lead">Preencha todos os campos. Ao enviar, o WhatsApp abre com a ficha pronta para o agendamento.</p>
     <form class="ficha" id="ficha-form" novalidate>
       <label class="fld"><span>Nome completo</span><input name="nome" type="text" autocomplete="name" required></label>
-      <label class="fld"><span>Idade</span><input name="idade" type="number" inputmode="numeric" min="5" max="100" required></label>
-      <fieldset class="fld">
+      <div class="fld-row">
+        <label class="fld"><span>Data de nascimento</span><input name="nascimento" type="date" min="1920-01-01" autocomplete="bday" required></label>
+        <div class="fld"><span>Idade</span><output class="idade" id="idade" aria-live="polite">—</output></div>
+      </div>
+      <fieldset class="fld" data-detalhe="tempo">
         <legend>Já fez Crossfit ou Hyrox?</legend>
         <div class="opts">
           <label class="opt"><input type="radio" name="experiencia" value="Sim" required><span>Sim</span></label>
           <label class="opt"><input type="radio" name="experiencia" value="Não"><span>Não</span></label>
         </div>
       </fieldset>
-      <label class="fld" id="fld-tempo" hidden><span>Se sim, por quanto tempo?</span><input name="tempo" type="text" placeholder="Ex.: 6 meses"></label>
-      <label class="fld"><span>Possui alguma comorbidade?</span><input name="comorbidade" type="text" placeholder="Se não, escreva “Não”" required></label>
-      <label class="fld"><span>Alguma lesão ou dor muscular/articular?</span><input name="lesao" type="text" placeholder="Se não, escreva “Não”" required></label>
-      <label class="fld"><span>Usa alguma medicação?</span><input name="medicacao" type="text" placeholder="Se não, escreva “Não”" required></label>
-      <label class="fld"><span>Como conheceu o TIJUCA HYROX?</span><input name="origem" type="text" list="origens" required></label>
-      <datalist id="origens">
-        <option value="Instagram"></option><option value="Indicação de amigo"></option><option value="Wellhub"></option>
-        <option value="TotalPass"></option><option value="Google"></option><option value="Passando na rua"></option>
-      </datalist>
+      <label class="fld detalhe" id="fld-tempo" hidden><span>Se sim, por quanto tempo?</span><input name="tempo" type="text" placeholder="Ex.: 6 meses"></label>
+      <fieldset class="fld" data-detalhe="comorbidade_qual">
+        <legend>Possui alguma comorbidade?</legend>
+        <div class="opts">
+          <label class="opt"><input type="radio" name="comorbidade" value="Sim" required><span>Sim</span></label>
+          <label class="opt"><input type="radio" name="comorbidade" value="Não"><span>Não</span></label>
+        </div>
+      </fieldset>
+      <label class="fld detalhe" id="fld-comorbidade_qual" hidden><span>Qual comorbidade?</span><input name="comorbidade_qual" type="text" placeholder="Ex.: hipertensão, diabetes, asma"></label>
+      <fieldset class="fld" data-detalhe="lesao_qual">
+        <legend>Alguma lesão ou dor muscular/articular?</legend>
+        <div class="opts">
+          <label class="opt"><input type="radio" name="lesao" value="Sim" required><span>Sim</span></label>
+          <label class="opt"><input type="radio" name="lesao" value="Não"><span>Não</span></label>
+        </div>
+      </fieldset>
+      <label class="fld detalhe" id="fld-lesao_qual" hidden><span>Qual lesão ou dor? Onde?</span><input name="lesao_qual" type="text" placeholder="Ex.: dor no joelho direito"></label>
+      <fieldset class="fld" data-detalhe="medicacao_qual">
+        <legend>Usa alguma medicação?</legend>
+        <div class="opts">
+          <label class="opt"><input type="radio" name="medicacao" value="Sim" required><span>Sim</span></label>
+          <label class="opt"><input type="radio" name="medicacao" value="Não"><span>Não</span></label>
+        </div>
+      </fieldset>
+      <label class="fld detalhe" id="fld-medicacao_qual" hidden><span>Qual medicação?</span><input name="medicacao_qual" type="text" placeholder="Ex.: remédio para pressão"></label>
+      <label class="fld"><span>Como conheceu o TIJUCA HYROX?</span>
+        <select name="origem" required>
+          <option value="">Escolha uma opção</option>
+          <option>Site</option><option>Instagram</option><option>Amigo</option><option>Visitei o local</option><option>Outros</option>
+        </select>
+      </label>
       <label class="fld"><span>Dia do agendamento</span><input name="dia" type="date" required></label>
       <label class="fld"><span>Horário</span><select name="horario" required disabled><option value="">Escolha o dia primeiro</option></select></label>
+      <div class="regras">
+        <strong>Regras da aula experimental</strong>
+        <ul>
+          <li>Disponibilizamos apenas uma aula experimental por pessoa cadastrada.</li>
+          <li>Em caso de não comparecimento no dia e horário agendados, a aula experimental é perdida.</li>
+          <li>Somente a pessoa dos dados informados nesta ficha poderá participar da aula experimental.</li>
+        </ul>
+      </div>
+      <div class="regras">
+        <strong>Privacidade dos seus dados (LGPD)</strong>
+        <p>Usamos seus dados somente para agendar a aula experimental e cuidar da sua segurança no treino. Eles não ficam salvos neste site, não são compartilhados com terceiros e não serão usados para nenhuma outra finalidade, como propaganda, conforme a Lei Geral de Proteção de Dados (Lei nº 13.709/2018). Você pode pedir a exclusão a qualquer momento pelo nosso WhatsApp.</p>
+      </div>
+      <label class="check"><input type="checkbox" name="aceite" required><span>Li e aceito as regras da aula experimental e declaro que todos os dados informados são verídicos.</span></label>
+      <label class="check"><input type="checkbox" name="lgpd" required><span>Autorizo o uso dos meus dados, inclusive os de saúde, somente para o agendamento e o acompanhamento da aula experimental.</span></label>
       <button type="submit" class="btn btn-primary ficha-enviar"><svg aria-hidden="true"><use href="#i-whats"/></svg><span>Enviar pelo WhatsApp</span></button>
       <p class="ficha-ok" id="ficha-ok" role="status"></p>
-      <p class="ficha-nota">Seus dados não ficam salvos no site: vão direto para o nosso WhatsApp.</p>
     </form>
   </div>
 </div>
@@ -976,9 +1027,28 @@ window.TH = (() => {
       : '<option value="">Sem aulas neste dia</option>';
   }
 
+  // idade completa hoje (Brasília) a partir de 'AAAA-MM-DD'
+  function calcularIdade(iso) {
+    const [a, m, d] = iso.split('-').map(Number);
+    const [ha, hm, hd] = hojeSP().split('-').map(Number);
+    return ha - a - (hm < m || (hm === m && hd < d) ? 1 : 0);
+  }
+  function atualizarIdade() {
+    const campo = ficha.elements.nascimento;
+    let texto = '—';
+    campo.setCustomValidity('');
+    if (campo.value) {
+      const idade = calcularIdade(campo.value);
+      if (idade < 3 || idade > 100) campo.setCustomValidity('Confira a data de nascimento.');
+      else texto = `${idade} anos`;
+    }
+    $('#idade').textContent = texto;
+  }
+
   function abrirFicha() {
     voltarFoco = document.activeElement;
     ficha.elements.dia.min = hojeSP();
+    ficha.elements.nascimento.max = hojeSP();
     $('#ficha-ok').textContent = '';
     $('#ficha').hidden = false;
     document.documentElement.style.overflow = 'hidden';
@@ -994,35 +1064,46 @@ window.TH = (() => {
   $('#cta-experimental').addEventListener('click', abrirFicha);
   $('#ficha').addEventListener('click', (e) => { if (e.target.closest('[data-fechar]')) fecharFicha(); });
   ficha.addEventListener('change', (e) => {
-    if (e.target.name === 'experiencia') {
+    // Sim/Não: "Sim" abre e exige o campo de detalhe logo abaixo
+    const grupo = e.target.closest('[data-detalhe]');
+    if (grupo && e.target.type === 'radio') {
+      const detalhe = grupo.dataset.detalhe;
       const sim = e.target.value === 'Sim';
-      $('#fld-tempo').hidden = !sim;
-      ficha.elements.tempo.required = sim;
+      $(`#fld-${detalhe}`).hidden = !sim;
+      ficha.elements[detalhe].required = sim;
     }
     if (e.target.name === 'dia') preencherHorarios();
+    if (e.target.name === 'nascimento') atualizarIdade();
   });
+  ficha.addEventListener('input', (e) => { if (e.target.name === 'nascimento') atualizarIdade(); });
   ficha.addEventListener('submit', (e) => {
     e.preventDefault();
     ficha.classList.add('tentou');
     if (!ficha.reportValidity()) return;
     const v = (nome) => ficha.elements[nome].value.trim();
     const [a, m, d] = v('dia').split('-');
+    const [na, nm, nd] = v('nascimento').split('-');
     const dia = diaDaSemana(v('dia'));
+    const simNao = (nome) => (v(nome) === 'Sim' ? `Sim – ${v(`${nome}_qual`)}` : 'Não');
     const texto = [
       '*Ficha de Anamnese Aula Experimental*',
       '',
       'Olá, gostaria de agendar uma aula experimental. Segue os dados para agendamento:',
       '',
       `Nome completo: ${v('nome')}`,
-      `Idade: ${v('idade')}`,
+      `Data de nascimento: ${nd}/${nm}/${na}`,
+      `Idade: ${calcularIdade(v('nascimento'))} anos`,
       `Já fez Crossfit ou Hyrox? ${v('experiencia')}`,
       `Se sim, por quanto tempo?: ${v('experiencia') === 'Sim' ? v('tempo') : '—'}`,
-      `Possui alguma comorbidade?: ${v('comorbidade')}`,
-      `Alguma lesão ou dor muscular/articular?: ${v('lesao')}`,
-      `Usa alguma medicação?: ${v('medicacao')}`,
+      `Possui alguma comorbidade?: ${simNao('comorbidade')}`,
+      `Alguma lesão ou dor muscular/articular?: ${simNao('lesao')}`,
+      `Usa alguma medicação?: ${simNao('medicacao')}`,
       `Como conheceu o TIJUCA HYROX?: ${v('origem')}`,
       `Dia do agendamento: ${DIAS[dia]}${dia < 5 ? '-feira' : ''}, ${d}/${m}/${a}`,
       `Horário: ${v('horario')}`,
+      '',
+      '✅ Li e aceito as regras da aula experimental e declaro que todos os dados informados são verídicos.',
+      '✅ Autorizo o uso dos meus dados somente para o agendamento e o acompanhamento da aula experimental (LGPD).',
     ].join('\n');
     const link = document.createElement('a');
     link.href = whats(texto);
