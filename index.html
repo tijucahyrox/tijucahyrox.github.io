@@ -389,6 +389,39 @@
   .modal-link { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 12px; padding: 12px; border-radius: 14px; border: 1px solid var(--line); font-weight: 700; color: var(--soft); }
   .modal-link svg { width: 18px; height: 18px; }
 
+  /* ---------- ficha de aula experimental ---------- */
+  .ficha-eyebrow { display: block; margin-bottom: 4px; font-size: 12px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--accent); }
+  .ficha-lead { margin: -2px 0 14px; font-size: 14.5px; color: var(--soft); }
+  .ficha { display: flex; flex-direction: column; gap: 12px; }
+  .fld { display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 0; border: 0; }
+  .fld[hidden] { display: none; }
+  .fld > span, .fld legend { padding: 0; font-size: 13.5px; font-weight: 700; color: var(--soft); }
+  .fld legend { margin-bottom: 6px; }
+  .ficha input:not([type="radio"]), .ficha select {
+    width: 100%; height: 48px; padding: 0 14px; border-radius: 12px;
+    background: var(--surface); border: 1px solid var(--line); color: var(--ink);
+    font: inherit; font-size: 16px; -webkit-appearance: none; appearance: none;
+  }
+  .ficha select {
+    padding-right: 40px;
+    background: var(--surface) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24'><path d='m6 9 6 6 6-6' fill='none' stroke='%23ffffff' stroke-opacity='.6' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/></svg>") no-repeat right 14px center;
+  }
+  .ficha select:disabled { opacity: .5; }
+  .ficha input::placeholder { color: var(--faint); }
+  .ficha input:focus, .ficha select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+  .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .opt { position: relative; }
+  .opt input { position: absolute; inset: 0; opacity: 0; margin: 0; }
+  .opt span { display: flex; align-items: center; justify-content: center; height: 46px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); font-weight: 700; }
+  .opt input:checked + span { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .opt input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .ficha.tentou input:not([type="radio"]):invalid, .ficha.tentou select:invalid { border-color: #ff5d6c; }
+  .ficha.tentou .opts:has(input:invalid) span { border-color: #ff5d6c; }
+  .ficha-enviar { flex: none; width: 100%; margin-top: 4px; }
+  .ficha-ok { min-height: 1em; text-align: center; font-size: 14px; font-weight: 700; color: #8ae05c; }
+  .ficha-ok:empty { display: none; }
+  .ficha-nota { text-align: center; font-size: 12.5px; color: var(--faint); }
+
   blockquote.instagram-media { margin: 0; }
   blockquote.instagram-media > a {
     display: flex; align-items: center; gap: 14px; min-height: 96px; padding: 16px; border-radius: 18px;
@@ -509,9 +542,9 @@
     <a class="btn btn-primary" id="cta-matricula" target="_blank" rel="noopener">
       <svg aria-hidden="true"><use href="#i-whats"/></svg><span>Quero me matricular</span>
     </a>
-    <a class="btn btn-ghost" id="cta-info" target="_blank" rel="noopener">
-      <svg aria-hidden="true"><use href="#i-info"/></svg><span>Mais informações</span>
-    </a>
+    <button type="button" class="btn btn-ghost" id="cta-experimental" aria-haspopup="dialog">
+      <svg aria-hidden="true"><use href="#i-form"/></svg><span>Aula experimental</span>
+    </button>
   </div>
 </nav>
 
@@ -527,7 +560,44 @@
   </div>
 </div>
 
+<div class="modal" id="ficha" role="dialog" aria-modal="true" aria-labelledby="ficha-titulo" hidden>
+  <div class="modal-backdrop" data-fechar></div>
+  <div class="modal-box">
+    <div class="modal-head">
+      <div><span class="ficha-eyebrow">Aula experimental</span><h3 id="ficha-titulo">Ficha de anamnese</h3></div>
+      <button type="button" class="modal-x" data-fechar aria-label="Fechar ficha"><svg aria-hidden="true"><use href="#i-close"/></svg></button>
+    </div>
+    <p class="ficha-lead">Preencha todos os campos. Ao enviar, o WhatsApp abre com a ficha pronta para o agendamento.</p>
+    <form class="ficha" id="ficha-form" novalidate>
+      <label class="fld"><span>Nome completo</span><input name="nome" type="text" autocomplete="name" required></label>
+      <label class="fld"><span>Idade</span><input name="idade" type="number" inputmode="numeric" min="5" max="100" required></label>
+      <fieldset class="fld">
+        <legend>Já fez Crossfit ou Hyrox?</legend>
+        <div class="opts">
+          <label class="opt"><input type="radio" name="experiencia" value="Sim" required><span>Sim</span></label>
+          <label class="opt"><input type="radio" name="experiencia" value="Não"><span>Não</span></label>
+        </div>
+      </fieldset>
+      <label class="fld" id="fld-tempo" hidden><span>Se sim, por quanto tempo?</span><input name="tempo" type="text" placeholder="Ex.: 6 meses"></label>
+      <label class="fld"><span>Possui alguma comorbidade?</span><input name="comorbidade" type="text" placeholder="Se não, escreva “Não”" required></label>
+      <label class="fld"><span>Alguma lesão ou dor muscular/articular?</span><input name="lesao" type="text" placeholder="Se não, escreva “Não”" required></label>
+      <label class="fld"><span>Usa alguma medicação?</span><input name="medicacao" type="text" placeholder="Se não, escreva “Não”" required></label>
+      <label class="fld"><span>Como conheceu o TIJUCA HYROX?</span><input name="origem" type="text" list="origens" required></label>
+      <datalist id="origens">
+        <option value="Instagram"></option><option value="Indicação de amigo"></option><option value="Wellhub"></option>
+        <option value="TotalPass"></option><option value="Google"></option><option value="Passando na rua"></option>
+      </datalist>
+      <label class="fld"><span>Dia do agendamento</span><input name="dia" type="date" required></label>
+      <label class="fld"><span>Horário</span><select name="horario" required disabled><option value="">Escolha o dia primeiro</option></select></label>
+      <button type="submit" class="btn btn-primary ficha-enviar"><svg aria-hidden="true"><use href="#i-whats"/></svg><span>Enviar pelo WhatsApp</span></button>
+      <p class="ficha-ok" id="ficha-ok" role="status"></p>
+      <p class="ficha-nota">Seus dados não ficam salvos no site: vão direto para o nosso WhatsApp.</p>
+    </form>
+  </div>
+</div>
+
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-form" viewBox="0 0 24 24"><rect x="4.8" y="4.2" width="14.4" height="17.2" rx="2.6" fill="none" stroke="currentColor" stroke-width="2"/><rect x="8.6" y="2.4" width="6.8" height="3.8" rx="1.2" fill="currentColor"/><path d="M8.6 10.6h6.8M8.6 14.2h6.8M8.6 17.8h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
   <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.6v14.8a1 1 0 0 0 1.5.86l12-7.4a1 1 0 0 0 0-1.72l-12-7.4A1 1 0 0 0 7 4.6Z" fill="currentColor"/></symbol>
   <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M7 3h10v5a5 5 0 0 1-10 0Z" fill="currentColor"/><path d="M7 5H4.6a2.6 2.6 0 0 0 2.8 3.6M17 5h2.4a2.6 2.6 0 0 1-2.8 3.6M12 13v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="7.5" y="17" width="9" height="3.4" rx="1.2" fill="currentColor"/></symbol>
   <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></symbol>
@@ -579,7 +649,7 @@ window.TH = (() => {
     [12, ['cross', 'cross', 'hyrox', 'cross', 'hyrox', 0, 0]],
     [16, ['kids', 0, 'kids', 0, 0, 0, 0]],
     [17, ['hyrox', 'cross', 'hyrox', 'cross', 'hyrox', 0, 0]],
-    [18, ['cross', 'cross', 'cross', 'hyrox', 'hyrox', 0, 0]],
+    [18, ['cross', 'hyrox', 'cross', 'hyrox', 'hyrox', 0, 0]],
     [19, ['cross', 'cross', 'cross', 'cross', 'hyrox', 0, 0]],
     [20, ['hyrox', 'hyrox', 'hyrox', 'hyrox', 'hyrox', 0, 0]],
     [21, ['cross', 'cross', 'cross', 'cross', 'hyrox', 0, 0]],
@@ -745,9 +815,7 @@ window.TH = (() => {
     const matricula = atual === 'kids'
       ? `Olá! Vi os horários no site e quero matricular meu filho(a) no ${m.nome}. Pode me ajudar?`
       : `Olá! Vi os horários no site e quero me matricular ${no} ${m.nome}. Pode me ajudar?`;
-    const info = `Olá! Vi os horários no site e gostaria de mais informações sobre as aulas de ${m.nome}.`;
     $('#cta-matricula').href = whats(matricula);
-    $('#cta-info').href = whats(info);
     $('#contato-whats').href = whats('Olá! Vi os horários no site e gostaria de falar com a equipe.');
   }
 
@@ -882,7 +950,87 @@ window.TH = (() => {
     if (el) abrirVideo(Number(el.dataset.video));
   });
   $('#modal').addEventListener('click', (e) => { if (e.target.closest('[data-fechar]')) fecharVideo(); });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') fecharVideo(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { fecharVideo(); fecharFicha(); } });
+
+  // ---------- ficha de anamnese (aula experimental) ----------
+  const ficha = $('#ficha-form');
+  const hojeSP = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
+  // 'AAAA-MM-DD' -> dia da semana com 0 = segunda, como em AULAS
+  const diaDaSemana = (iso) => { const [a, m, d] = iso.split('-').map(Number); return (new Date(Date.UTC(a, m - 1, d)).getUTCDay() + 6) % 7; };
+
+  function preencherHorarios() {
+    const sel = ficha.elements.horario;
+    const iso = ficha.elements.dia.value;
+    if (!iso) {
+      sel.innerHTML = '<option value="">Escolha o dia primeiro</option>';
+      sel.disabled = true;
+      return;
+    }
+    const dia = diaDaSemana(iso);
+    const t = agora();
+    const aulas = AULAS.filter((a) => a.dia === dia && !(iso === hojeSP() && a.ini <= t.min));
+    sel.disabled = !aulas.length;
+    sel.innerHTML = aulas.length
+      ? '<option value="">Escolha o horário</option>' + aulas.map((a) =>
+        `<option value="${faixa(a)} (${POR_ID[a.mod].nome})">${faixa(a)} · ${POR_ID[a.mod].nome}</option>`).join('')
+      : '<option value="">Sem aulas neste dia</option>';
+  }
+
+  function abrirFicha() {
+    voltarFoco = document.activeElement;
+    ficha.elements.dia.min = hojeSP();
+    $('#ficha-ok').textContent = '';
+    $('#ficha').hidden = false;
+    document.documentElement.style.overflow = 'hidden';
+    ficha.elements.nome.focus();
+  }
+  function fecharFicha() {
+    if ($('#ficha').hidden) return;
+    $('#ficha').hidden = true;
+    document.documentElement.style.overflow = '';
+    if (voltarFoco) voltarFoco.focus();
+  }
+
+  $('#cta-experimental').addEventListener('click', abrirFicha);
+  $('#ficha').addEventListener('click', (e) => { if (e.target.closest('[data-fechar]')) fecharFicha(); });
+  ficha.addEventListener('change', (e) => {
+    if (e.target.name === 'experiencia') {
+      const sim = e.target.value === 'Sim';
+      $('#fld-tempo').hidden = !sim;
+      ficha.elements.tempo.required = sim;
+    }
+    if (e.target.name === 'dia') preencherHorarios();
+  });
+  ficha.addEventListener('submit', (e) => {
+    e.preventDefault();
+    ficha.classList.add('tentou');
+    if (!ficha.reportValidity()) return;
+    const v = (nome) => ficha.elements[nome].value.trim();
+    const [a, m, d] = v('dia').split('-');
+    const dia = diaDaSemana(v('dia'));
+    const texto = [
+      '*Ficha de Anamnese Aula Experimental*',
+      '',
+      'Olá, gostaria de agendar uma aula experimental. Segue os dados para agendamento:',
+      '',
+      `Nome completo: ${v('nome')}`,
+      `Idade: ${v('idade')}`,
+      `Já fez Crossfit ou Hyrox? ${v('experiencia')}`,
+      `Se sim, por quanto tempo?: ${v('experiencia') === 'Sim' ? v('tempo') : '—'}`,
+      `Possui alguma comorbidade?: ${v('comorbidade')}`,
+      `Alguma lesão ou dor muscular/articular?: ${v('lesao')}`,
+      `Usa alguma medicação?: ${v('medicacao')}`,
+      `Como conheceu o TIJUCA HYROX?: ${v('origem')}`,
+      `Dia do agendamento: ${DIAS[dia]}${dia < 5 ? '-feira' : ''}, ${d}/${m}/${a}`,
+      `Horário: ${v('horario')}`,
+    ].join('\n');
+    const link = document.createElement('a');
+    link.href = whats(texto);
+    link.target = '_blank';
+    link.rel = 'noopener';
+    link.click();
+    $('#ficha-ok').textContent = 'Ficha pronta! Confira e toque em enviar no WhatsApp.';
+  });
 
   function selecionar(id, rolar) {
     atual = id;
