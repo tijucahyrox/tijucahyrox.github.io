@@ -419,6 +419,26 @@
   .ficha.tentou .check input:invalid + span { color: #ff8a95; }
   .ficha.tentou .opts:has(input:invalid) span { border-color: #ff5d6c; }
   .ficha-enviar { flex: none; width: 100%; margin-top: 4px; }
+  .ficha-secao {
+    display: flex; align-items: center; gap: 10px; margin-top: 10px; padding-top: 14px; border-top: 1px solid var(--line);
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 20px; letter-spacing: .02em; text-transform: uppercase;
+  }
+  .ficha-secao:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+  .ficha-secao b { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; background: var(--accent); color: var(--on-accent); font-size: 15px; }
+  .ficha-intro { margin-top: -4px; font-size: 13.5px; line-height: 1.4; color: var(--faint); }
+  .responsavel { display: flex; flex-direction: column; gap: 12px; padding: 12px; border-radius: 14px; border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+  .responsavel[hidden] { display: none; }
+  .responsavel-aviso { font-size: 13.5px; font-weight: 700; color: var(--ink); }
+  .parq { display: flex; flex-direction: column; gap: 14px; }
+  .parq legend { font-weight: 600; color: var(--ink); line-height: 1.35; }
+  .parq legend b { color: var(--accent); margin-right: 4px; }
+  .parq-res { padding: 12px 14px; border-radius: 14px; font-size: 13.5px; line-height: 1.4; }
+  .parq-res strong { display: block; margin-bottom: 4px; font-size: 14px; }
+  .parq-res.ok { background: rgba(138, 224, 92, .1); border: 1px solid rgba(138, 224, 92, .4); color: #d8f5c8; }
+  .parq-res.alerta { background: rgba(255, 181, 71, .1); border: 1px solid rgba(255, 181, 71, .5); color: #ffe2b3; }
+  .termo { max-height: 220px; overflow: auto; }
+  .termo p + p { margin-top: 8px; }
+  .check em { font-style: normal; color: var(--faint); }
   .ficha-ok { min-height: 1em; text-align: center; font-size: 14px; font-weight: 700; color: #8ae05c; }
   .ficha-ok:empty { display: none; }
   .fld-row { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 8px; }
@@ -580,13 +600,28 @@
       <div><span class="ficha-eyebrow">Aula experimental</span><h3 id="ficha-titulo">Ficha de anamnese</h3></div>
       <button type="button" class="modal-x" data-fechar aria-label="Fechar ficha"><svg aria-hidden="true"><use href="#i-close"/></svg></button>
     </div>
-    <p class="ficha-lead">Preencha todos os campos. Ao enviar, o WhatsApp abre com a ficha pronta para o agendamento.</p>
+    <p class="ficha-lead">Ficha de anamnese, questionário PAR-Q+ e termo de aptidão física. Preencha tudo: ao enviar, o WhatsApp abre com a ficha pronta para o agendamento.</p>
     <form class="ficha" id="ficha-form" novalidate>
+      <h4 class="ficha-secao"><b>1</b>Seus dados</h4>
       <label class="fld"><span>Nome completo</span><input name="nome" type="text" autocomplete="name" required></label>
       <div class="fld-row">
         <label class="fld"><span>Data de nascimento</span><input name="nascimento" type="date" min="1920-01-01" autocomplete="bday" required></label>
         <div class="fld"><span>Idade</span><output class="idade" id="idade" aria-live="polite">—</output></div>
       </div>
+      <label class="fld"><span>CPF</span><input name="cpf" type="text" inputmode="numeric" autocomplete="off" placeholder="000.000.000-00" maxlength="14" required></label>
+      <label class="fld"><span>Telefone (WhatsApp)</span><input name="telefone" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="(21) 99999-9999" maxlength="15" required></label>
+      <div class="responsavel" id="fld-responsavel" hidden>
+        <p class="responsavel-aviso">Menor de 18 anos: preencha os dados do responsável legal, que também assina o termo.</p>
+        <label class="fld"><span>Nome completo do responsável legal</span><input name="resp_nome" type="text" autocomplete="off"></label>
+        <label class="fld"><span>CPF do responsável legal</span><input name="resp_cpf" type="text" inputmode="numeric" autocomplete="off" placeholder="000.000.000-00" maxlength="14"></label>
+      </div>
+
+      <h4 class="ficha-secao"><b>2</b>Questionário PAR-Q+</h4>
+      <p class="ficha-intro">Este questionário visa identificar se você precisa consultar um médico antes de se tornar mais fisicamente ativo(a). Por favor, responda todas as perguntas com SIM ou NÃO, com sinceridade.</p>
+      <div class="parq" id="parq"></div>
+      <div class="parq-res" id="parq-res" role="status" hidden></div>
+
+      <h4 class="ficha-secao"><b>3</b>Experiência</h4>
       <fieldset class="fld" data-detalhe="tempo">
         <legend>Já fez Crossfit ou Hyrox?</legend>
         <div class="opts">
@@ -595,36 +630,14 @@
         </div>
       </fieldset>
       <label class="fld detalhe" id="fld-tempo" hidden><span>Se sim, por quanto tempo?</span><input name="tempo" type="text" placeholder="Ex.: 6 meses"></label>
-      <fieldset class="fld" data-detalhe="comorbidade_qual">
-        <legend>Possui alguma comorbidade?</legend>
-        <div class="opts">
-          <label class="opt"><input type="radio" name="comorbidade" value="Sim" required><span>Sim</span></label>
-          <label class="opt"><input type="radio" name="comorbidade" value="Não"><span>Não</span></label>
-        </div>
-      </fieldset>
-      <label class="fld detalhe" id="fld-comorbidade_qual" hidden><span>Qual comorbidade?</span><input name="comorbidade_qual" type="text" placeholder="Ex.: hipertensão, diabetes, asma"></label>
-      <fieldset class="fld" data-detalhe="lesao_qual">
-        <legend>Alguma lesão ou dor muscular/articular?</legend>
-        <div class="opts">
-          <label class="opt"><input type="radio" name="lesao" value="Sim" required><span>Sim</span></label>
-          <label class="opt"><input type="radio" name="lesao" value="Não"><span>Não</span></label>
-        </div>
-      </fieldset>
-      <label class="fld detalhe" id="fld-lesao_qual" hidden><span>Qual lesão ou dor? Onde?</span><input name="lesao_qual" type="text" placeholder="Ex.: dor no joelho direito"></label>
-      <fieldset class="fld" data-detalhe="medicacao_qual">
-        <legend>Usa alguma medicação?</legend>
-        <div class="opts">
-          <label class="opt"><input type="radio" name="medicacao" value="Sim" required><span>Sim</span></label>
-          <label class="opt"><input type="radio" name="medicacao" value="Não"><span>Não</span></label>
-        </div>
-      </fieldset>
-      <label class="fld detalhe" id="fld-medicacao_qual" hidden><span>Qual medicação?</span><input name="medicacao_qual" type="text" placeholder="Ex.: remédio para pressão"></label>
       <label class="fld"><span>Como conheceu o TIJUCA HYROX?</span>
         <select name="origem" required>
           <option value="">Escolha uma opção</option>
           <option>Site</option><option>Instagram</option><option>Amigo</option><option>Visitei o local</option><option>Outros</option>
         </select>
       </label>
+
+      <h4 class="ficha-secao"><b>4</b>Agendamento</h4>
       <label class="fld"><span>Dia do agendamento</span><input name="dia" type="date" required></label>
       <label class="fld"><span>Horário</span><select name="horario" required disabled><option value="">Escolha o dia primeiro</option></select></label>
       <div class="regras">
@@ -636,12 +649,30 @@
           <li>Para a aula experimental de Hyrox Kids, é necessária a presença do responsável.</li>
         </ul>
       </div>
+
+      <h4 class="ficha-secao"><b>5</b>Termo de aptidão física e uso de imagem</h4>
+      <div class="regras termo" tabindex="0" aria-label="Termo de aptidão física">
+        <strong>Termo de Aptidão Física</strong>
+        <p>Declaro estar ciente de que a prática de atividades físicas e esportivas envolve riscos inerentes à sua natureza, inclusive a possibilidade de lesões, mal-estar, quedas, acidentes e outras intercorrências, especialmente quando decorrentes de condições de saúde preexistentes ou não informadas.</p>
+        <p>Comprometo-me a informar previamente ao TIJUCA HYROX TRAINING CLUB, seus profissionais e responsáveis qualquer condição de saúde, limitação física, lesão, tratamento médico, uso de medicamentos ou outra circunstância que possa interferir na prática segura das atividades, bem como a interromper imediatamente o exercício e comunicar o profissional responsável caso apresente qualquer sintoma ou mal-estar.</p>
+        <p>Assumo a responsabilidade pelas informações prestadas neste termo e pelos riscos inerentes à prática das atividades físicas, comprometendo-me a seguir as orientações dos profissionais responsáveis.</p>
+        <p>Na medida permitida pela legislação aplicável, reconheço que o TIJUCA HYROX TRAINING CLUB não será responsável por danos ou intercorrências decorrentes exclusivamente de informações incorretas, incompletas ou omitidas por mim, de condições de saúde preexistentes não informadas, ou do descumprimento das orientações de segurança e das instruções dos profissionais responsáveis.</p>
+        <p>Declaro, por fim, que li, compreendi e concordo com as condições acima, assumindo a responsabilidade pelas declarações prestadas neste documento.</p>
+      </div>
+      <div class="regras">
+        <strong>Uso de imagem (opcional)</strong>
+        <p>Autorizo também que utilizem minhas imagens fotográficas, vídeos, podendo veicular minha imagem e depoimentos em qualquer meio de comunicação sem qualquer ônus e restrições, fica ainda autorizada a cessão de direitos de veiculação, não recebendo para tanto qualquer tipo de remuneração.</p>
+      </div>
       <div class="regras">
         <strong>Privacidade dos seus dados (LGPD)</strong>
         <p>Usamos seus dados somente para agendar a aula experimental e cuidar da sua segurança no treino. Eles não ficam salvos neste site, não são compartilhados com terceiros e não serão usados para nenhuma outra finalidade, como propaganda, conforme a Lei Geral de Proteção de Dados (Lei nº 13.709/2018). Você pode pedir a exclusão a qualquer momento pelo nosso WhatsApp.</p>
       </div>
       <label class="check"><input type="checkbox" name="aceite" required><span>Li e aceito as regras da aula experimental e declaro que todos os dados informados são verídicos.</span></label>
+      <label class="check"><input type="checkbox" name="termo" required><span>Li, compreendi e concordo com o Termo de Aptidão Física.</span></label>
+      <label class="check"><input type="checkbox" name="imagem"><span>Autorizo o uso da minha imagem (fotos, vídeos e depoimentos), conforme o texto acima. <em>Opcional.</em></span></label>
       <label class="check"><input type="checkbox" name="lgpd" required><span>Autorizo o uso dos meus dados, inclusive os de saúde, somente para o agendamento e o acompanhamento da aula experimental.</span></label>
+      <label class="fld"><span id="assinatura-rotulo">Assinatura: digite seu nome completo</span><input name="assinatura" type="text" autocomplete="off" required></label>
+      <p class="ficha-intro">Em caso de menores de 18 anos, assina o responsável legal. A data e a hora entram automaticamente.</p>
       <button type="submit" class="btn btn-primary ficha-enviar"><svg aria-hidden="true"><use href="#i-whats"/></svg><span>Enviar pelo WhatsApp</span></button>
       <p class="ficha-ok" id="ficha-ok" role="status"></p>
     </form>
@@ -1004,11 +1035,81 @@ window.TH = (() => {
   $('#modal').addEventListener('click', (e) => { if (e.target.closest('[data-fechar]')) fecharVideo(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { fecharVideo(); fecharFicha(); } });
 
-  // ---------- ficha de anamnese (aula experimental) ----------
+  // ---------- ficha de anamnese + PAR-Q+ (aula experimental) ----------
   const ficha = $('#ficha-form');
   const hojeSP = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
   // 'AAAA-MM-DD' -> dia da semana com 0 = segunda, como em AULAS
   const diaDaSemana = (iso) => { const [a, m, d] = iso.split('-').map(Number); return (new Date(Date.UTC(a, m - 1, d)).getUTCDay() + 6) % 7; };
+  const br = (iso) => iso.split('-').reverse().join('/');
+  const quando = (data) => new Intl.DateTimeFormat('pt-BR', {
+    timeZone: 'America/Sao_Paulo', weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit',
+  }).format(data);
+  function dataHoraSP() {
+    const p = Object.fromEntries(new Intl.DateTimeFormat('pt-BR', {
+      timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+    }).formatToParts(new Date()).map((x) => [x.type, x.value]));
+    return `${p.day}/${p.month}/${p.year} às ${p.hour}:${p.minute}`;
+  }
+
+  // PAR-Q+: [pergunta como no termo, resumo para a mensagem]
+  const PARQ = [
+    ['Seu médico já disse alguma vez que você tem uma condição cardíaca (do coração) e que só deve realizar atividade física recomendada por um profissional de saúde?',
+      'Condição cardíaca (atividade só com recomendação de profissional de saúde)'],
+    ['Você sente dor no peito quando pratica atividade física?', 'Dor no peito durante atividade física'],
+    ['No último mês, você teve dor no peito quando não estava praticando atividade física?', 'Dor no peito no último mês, fora da atividade física'],
+    ['Você já perdeu o equilíbrio devido a tontura ou perdeu a consciência (desmaiou) nos últimos 12 meses?', 'Tontura com perda de equilíbrio ou desmaio (últimos 12 meses)'],
+    ['Você tem algum problema ósseo ou articular (por exemplo, nas costas, joelhos ou quadris) que possa ser agravado pela mudança na sua atividade física?',
+      'Problema ósseo ou articular que possa piorar com a atividade'],
+    ['Seu médico prescreve atualmente medicamentos para a sua pressão arterial ou condição cardíaca?', 'Medicamento para pressão arterial ou condição cardíaca'],
+    ['Você sabe de qualquer outra razão pela qual não deva praticar atividade física?', 'Outra razão para não praticar atividade física'],
+  ];
+  $('#parq').innerHTML = PARQ.map(([pergunta], i) =>
+    `<fieldset class="fld"><legend><b>${i + 1}.</b>${pergunta}</legend><div class="opts">` +
+    `<label class="opt"><input type="radio" name="parq${i + 1}" value="Sim" required><span>Sim</span></label>` +
+    `<label class="opt"><input type="radio" name="parq${i + 1}" value="Não"><span>Não</span></label></div></fieldset>`).join('');
+  const respostasParq = () => PARQ.map((_, i) => ficha.elements[`parq${i + 1}`].value);
+
+  function atualizarParq() {
+    const respostas = respostasParq();
+    const caixa = $('#parq-res');
+    caixa.hidden = respostas.some((r) => !r);
+    if (caixa.hidden) return;
+    const algumSim = respostas.includes('Sim');
+    caixa.className = `parq-res ${algumSim ? 'alerta' : 'ok'}`;
+    caixa.innerHTML = algumSim
+      ? '<strong>Você respondeu SIM a uma ou mais perguntas</strong>Consulte um médico antes de se tornar mais ativo(a) ou de realizar uma avaliação física. Informe ao seu médico as perguntas às quais respondeu "SIM" e obtenha uma liberação médica por escrito para a prática de exercícios.'
+      : '<strong>Você respondeu NÃO a todas as perguntas</strong>Você está apto(a) a iniciar um programa de atividades físicas de forma gradual. Comece devagar e aumente a intensidade aos poucos. Se sua condição de saúde mudar no futuro e você passar a ter uma resposta "SIM" em qualquer pergunta, informe ao seu instrutor ou médico imediatamente.';
+  }
+
+  // CPF e telefone
+  const digitos = (texto) => texto.replace(/\D/g, '');
+  function mascaraCpf(valor) {
+    const d = digitos(valor).slice(0, 11);
+    return [d.slice(0, 3), d.slice(3, 6), d.slice(6, 9)].filter(Boolean).join('.') + (d.length > 9 ? `-${d.slice(9)}` : '');
+  }
+  function mascaraTelefone(valor) {
+    const d = digitos(valor).slice(0, 11);
+    if (d.length <= 2) return d ? `(${d}` : '';
+    const meio = d.length === 11 ? 5 : 4;
+    const resto = d.slice(2);
+    return `(${d.slice(0, 2)}) ${resto.slice(0, meio)}${resto.length > meio ? `-${resto.slice(meio)}` : ''}`;
+  }
+  function cpfValido(valor) {
+    const d = digitos(valor);
+    if (d.length !== 11 || /^(\d)\1{10}$/.test(d)) return false;
+    const dv = (n) => {
+      let soma = 0;
+      for (let i = 0; i < n; i++) soma += Number(d[i]) * (n + 1 - i);
+      return ((soma * 10) % 11) % 10;
+    };
+    return dv(9) === Number(d[9]) && dv(10) === Number(d[10]);
+  }
+  const validarCpf = (campo) => campo.setCustomValidity(!campo.value || cpfValido(campo.value) ? '' : 'CPF inválido. Confira os números.');
+  function validarTelefone() {
+    const campo = ficha.elements.telefone;
+    const n = digitos(campo.value).length;
+    campo.setCustomValidity(!campo.value || n === 10 || n === 11 ? '' : 'Informe o telefone com DDD.');
+  }
 
   function preencherHorarios() {
     const sel = ficha.elements.horario;
@@ -1034,16 +1135,37 @@ window.TH = (() => {
     const [ha, hm, hd] = hojeSP().split('-').map(Number);
     return ha - a - (hm < m || (hm === m && hd < d) ? 1 : 0);
   }
+  let menor = false;
   function atualizarIdade() {
     const campo = ficha.elements.nascimento;
     let texto = '—';
     campo.setCustomValidity('');
+    menor = false;
     if (campo.value) {
       const idade = calcularIdade(campo.value);
       if (idade < 3 || idade > 100) campo.setCustomValidity('Confira a data de nascimento.');
-      else texto = `${idade} anos`;
+      else {
+        texto = `${idade} anos`;
+        menor = idade < 18;
+      }
     }
     $('#idade').textContent = texto;
+    // menores de 18: dados e assinatura do responsável legal
+    $('#fld-responsavel').hidden = !menor;
+    ficha.elements.resp_nome.required = menor;
+    ficha.elements.resp_cpf.required = menor;
+    $('#assinatura-rotulo').textContent = menor
+      ? 'Assinatura do responsável legal: digite o nome completo dele(a)'
+      : 'Assinatura: digite seu nome completo';
+    validarAssinatura();
+  }
+  const normalizar = (texto) => texto.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+  function validarAssinatura() {
+    const campo = ficha.elements.assinatura;
+    const esperado = ficha.elements[menor ? 'resp_nome' : 'nome'].value;
+    campo.setCustomValidity(!campo.value || normalizar(campo.value) === normalizar(esperado) ? '' : menor
+      ? 'A assinatura deve ser o nome completo do responsável legal, igual ao informado acima.'
+      : 'A assinatura deve ser o seu nome completo, igual ao informado acima.');
   }
 
   function abrirFicha() {
@@ -1065,6 +1187,7 @@ window.TH = (() => {
   $('#cta-experimental').addEventListener('click', abrirFicha);
   $('#ficha').addEventListener('click', (e) => { if (e.target.closest('[data-fechar]')) fecharFicha(); });
   ficha.addEventListener('change', (e) => {
+    const nome = e.target.name || '';
     // Sim/Não: "Sim" abre e exige o campo de detalhe logo abaixo
     const grupo = e.target.closest('[data-detalhe]');
     if (grupo && e.target.type === 'radio') {
@@ -1073,38 +1196,70 @@ window.TH = (() => {
       $(`#fld-${detalhe}`).hidden = !sim;
       ficha.elements[detalhe].required = sim;
     }
-    if (e.target.name === 'dia') preencherHorarios();
-    if (e.target.name === 'nascimento') atualizarIdade();
+    if (nome.startsWith('parq')) atualizarParq();
+    if (nome === 'dia') preencherHorarios();
+    if (nome === 'nascimento') atualizarIdade();
   });
-  ficha.addEventListener('input', (e) => { if (e.target.name === 'nascimento') atualizarIdade(); });
+  ficha.addEventListener('input', (e) => {
+    const campo = e.target;
+    if (campo.name === 'nascimento') atualizarIdade();
+    if (campo.name === 'cpf' || campo.name === 'resp_cpf') {
+      campo.value = mascaraCpf(campo.value);
+      validarCpf(campo);
+    }
+    if (campo.name === 'telefone') {
+      campo.value = mascaraTelefone(campo.value);
+      validarTelefone();
+    }
+    if (['nome', 'resp_nome', 'assinatura'].includes(campo.name)) validarAssinatura();
+  });
+
   ficha.addEventListener('submit', (e) => {
     e.preventDefault();
     ficha.classList.add('tentou');
+    validarCpf(ficha.elements.cpf);
+    validarCpf(ficha.elements.resp_cpf);
+    validarTelefone();
+    validarAssinatura();
     if (!ficha.reportValidity()) return;
     const v = (nome) => ficha.elements[nome].value.trim();
-    const [a, m, d] = v('dia').split('-');
-    const [na, nm, nd] = v('nascimento').split('-');
     const dia = diaDaSemana(v('dia'));
-    const simNao = (nome) => (v(nome) === 'Sim' ? `Sim – ${v(`${nome}_qual`)}` : 'Não');
+    const parq = respostasParq();
+    const sims = parq.map((r, i) => (r === 'Sim' ? i + 1 : 0)).filter(Boolean);
     const texto = [
-      '*Ficha de Anamnese Aula Experimental*',
+      '*Ficha de Anamnese Aula Experimental – PAR-Q+*',
       '',
       'Olá, gostaria de agendar uma aula experimental. Segue os dados para agendamento:',
       '',
+      '*Dados*',
       `Nome completo: ${v('nome')}`,
-      `Data de nascimento: ${nd}/${nm}/${na}`,
-      `Idade: ${calcularIdade(v('nascimento'))} anos`,
+      `Data de nascimento: ${br(v('nascimento'))} (${calcularIdade(v('nascimento'))} anos)`,
+      `CPF: ${v('cpf')}`,
+      `Telefone: ${v('telefone')}`,
+      ...(menor ? [`Responsável legal: ${v('resp_nome')} – CPF ${v('resp_cpf')}`] : []),
+      '',
+      '*Questionário PAR-Q+*',
+      ...PARQ.map(([, resumo], i) => `${i + 1}. ${resumo}: ${parq[i]}`),
+      sims.length
+        ? `Resultado: SIM em ${sims.length === 1 ? '1 pergunta' : `${sims.length} perguntas`} (${sims.join(', ')}). Consultar um médico e apresentar liberação médica por escrito.`
+        : 'Resultado: NÃO a todas as perguntas. Apto(a) a iniciar as atividades de forma gradual.',
+      '',
+      '*Experiência*',
       `Já fez Crossfit ou Hyrox? ${v('experiencia')}`,
       `Se sim, por quanto tempo?: ${v('experiencia') === 'Sim' ? v('tempo') : '—'}`,
-      `Possui alguma comorbidade?: ${simNao('comorbidade')}`,
-      `Alguma lesão ou dor muscular/articular?: ${simNao('lesao')}`,
-      `Usa alguma medicação?: ${simNao('medicacao')}`,
       `Como conheceu o TIJUCA HYROX?: ${v('origem')}`,
-      `Dia do agendamento: ${DIAS[dia]}${dia < 5 ? '-feira' : ''}, ${d}/${m}/${a}`,
+      '',
+      '*Agendamento*',
+      `Dia do agendamento: ${DIAS[dia]}${dia < 5 ? '-feira' : ''}, ${br(v('dia'))}`,
       `Horário: ${v('horario')}`,
       '',
+      '*Termo de Aptidão Física e Uso de Imagem*',
       '✅ Li e aceito as regras da aula experimental e declaro que todos os dados informados são verídicos.',
+      '✅ Li, compreendi e concordo com o Termo de Aptidão Física.',
+      ficha.elements.imagem.checked ? '✅ Uso de imagem: autorizado.' : '❌ Uso de imagem: não autorizado.',
       '✅ Autorizo o uso dos meus dados somente para o agendamento e o acompanhamento da aula experimental (LGPD).',
+      `Assinatura${menor ? ' do responsável legal' : ''}: ${v('assinatura')}`,
+      `Data: ${dataHoraSP()}`,
     ].join('\n');
     const link = document.createElement('a');
     link.href = whats(texto);
@@ -1113,6 +1268,7 @@ window.TH = (() => {
     link.click();
     $('#ficha-ok').textContent = 'Ficha pronta! Confira e toque em enviar no WhatsApp.';
   });
+
 
   function selecionar(id, rolar) {
     atual = id;
